@@ -1,15 +1,15 @@
 from aiogram import types, Router
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 
 user_private_router = Router()
 
 
 @user_private_router.message(CommandStart())
 async def start_cmd(message: types.Message):
-        await message.answer('Это была команда СТАРТ')
+        await message.answer('Привет, я виртуальный помощник')
 
 
-@user_private_router.message()
-async def echo(message: types.Message):
-    await message.answer(message.text)       
-    await message.reply(message.text)  
+@user_private_router.message(Command('menu'))
+async def menu_cmd(message: types.Message):
+    await message.answer('Вот меню:')       
+
