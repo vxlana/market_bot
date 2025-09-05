@@ -11,7 +11,7 @@ def clean_text(text: str):
 
 @user_group_router.message()
 async def cleaner(message: types.Message):
-    if restricted_words.intersection(message.text.lower().split()):
+    if restricted_words.intersection(clean_text(message.text.lower()).split()):
         await message.answer(f'{message.from_user.first_name}, соблюдайте порядок в чате!')
         await message.delete()
         # await message.chat.ban(message.from_user.id)
