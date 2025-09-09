@@ -39,7 +39,14 @@ async def shipping_cmd(message: types.Message):
       await message.answer('Варианты доставки')
 
 
+@user_private_router.message(F.contact)
+async def get_contact(message: types.Message):
+      await message.answer(f'номер получен')
+      await message.answer(str(message.contact))
 
 
-
+@user_private_router.message(F.location)
+async def get_location(message: types.Message):
+      await message.answer(f'локация получена')
+      await message.answer(str(message.location))
 
