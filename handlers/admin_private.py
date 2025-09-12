@@ -78,4 +78,3 @@ async def add_price(message: types.Message):
 @admin_router.message(F.photo)
 async def add_image(message: types.Message):
     await message.answer("Товар добавлен", reply_markup=ADMIN_KB)
-    
