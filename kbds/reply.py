@@ -39,5 +39,3 @@ def get_keyboard(
     return keyboard.adjust(*sizes).as_markup(
             resize_keyboard=True, input_field_placeholder=placeholder)
 
-
-
