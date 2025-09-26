@@ -8,8 +8,9 @@ from aiogram.fsm.strategy import FSMStrategy
 
 from dotenv import find_dotenv, load_dotenv
 
-from middlewares.db import CounterMiddleware
 load_dotenv(find_dotenv())
+
+from database.engine import create_db
 
 from handlers.user_private import user_private_router
 from handlers.user_group import user_group_router
@@ -24,14 +25,29 @@ bot.my_admins_list = []
 
 dp = Dispatcher()
 
-admin_router.message.middleware(CounterMiddleware())
 
 dp.include_router(user_private_router)
 dp.include_router(user_group_router)
 dp.include_router(admin_router)
 
 
+async def on_startup(bot):
+
+    run_param = False
+    if run_param:
+        await drop_db()
+
+    await create_db()
+
+
+async def on_shutdown(bot):
+    print('бот лег')
+
+
 async def main():
+    dp.startup.register(on_startup)
+    dp.shutdown.register(on_shutdown)
+
     await bot.delete_webhook(drop_pending_updates=True)
     # await bot.delete_my_commands(scope=types.BotCommandScopeAllPrivateChats())
     await bot.set_my_commands(commands=private, scope=types.BotCommandScopeAllPrivateChats())
