@@ -16,4 +16,3 @@ class Product(Base):
     description: Mapped[str] = mapped_column(Text)
     price: Mapped[float] = mapped_column(Float(asdecimal=True), nullable=False)
     image: Mapped[str] = mapped_column(String(150))
-
