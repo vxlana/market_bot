@@ -8,6 +8,9 @@ from aiogram.fsm.state import StatesGroup, State
 
 from kbds.reply import get_keyboard
 
+from database.models import Product
+from sqlalchemy.ext.asyncio import AsyncSession
+
 
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
@@ -137,14 +140,23 @@ async def add_name(message: types.Message, state: FSMContext):
 
 
 @admin_router.message(AddProduct.image, F.photo)
-async def add_image(message: types.Message, state: FSMContext):
-    await state.update_data(photo=message.photo[-1].file_id)
+async def add_image(message: types.Message, state: FSMContext, session: AsyncSession):
+
+    await state.update_data(image=message.photo[-1].file_id)
     await message.answer("Товар добавлен", reply_markup=ADMIN_KB)
     data = await state.get_data()
-    await message.answer(str(data))
+
+    obj = Product(
+        name=data["name"],
+        description=data["description"],
+        price=float(data["price"]),
+        image=data["image"],
+    )
+    session.add(obj)
+    await session.commit()    
     await state.clear()
+
 
 @admin_router.message(AddProduct.image)
 async def add_name(message: types.Message, state: FSMContext):
     await message.answer("Вы ввели недопустимые данные, отправьте картинку товара")
-
