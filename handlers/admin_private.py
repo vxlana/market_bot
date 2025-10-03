@@ -3,12 +3,12 @@ from aiogram.filters import Command, StateFilter
 
 from aiogram.fsm.context import FSMContext
 
+from database.orm_query import add_orm_product
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from aiogram.fsm.state import StatesGroup, State
 
 from kbds.reply import get_keyboard
 
-from database.models import Product
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -146,15 +146,15 @@ async def add_image(message: types.Message, state: FSMContext, session: AsyncSes
     await message.answer("Товар добавлен", reply_markup=ADMIN_KB)
     data = await state.get_data()
 
-    obj = Product(
-        name=data["name"],
-        description=data["description"],
-        price=float(data["price"]),
-        image=data["image"],
-    )
-    session.add(obj)
-    await session.commit()    
-    await state.clear()
+    try:
+        await add_orm_product(session, data)
+        await message.answer("Товар добавлен", reply_markup=ADMIN_KB)
+        await state.clear()
+
+    except Exception as e:
+        await message.answer(
+            f"Ошибка при добавлении товара: {e}", reply_markup=ADMIN_KB)
+        await state.clear()
 
 
 @admin_router.message(AddProduct.image)
