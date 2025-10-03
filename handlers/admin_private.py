@@ -3,7 +3,7 @@ from aiogram.filters import Command, StateFilter
 
 from aiogram.fsm.context import FSMContext
 
-from database.orm_query import add_orm_product
+from database.orm_query import add_orm_product, orm_get_all_products
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from aiogram.fsm.state import StatesGroup, State
 
@@ -18,11 +18,9 @@ admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
 
 ADMIN_KB = get_keyboard(
     "Добавить товар",
-    "Изменить товар",
-    "Удалить товар",
-    "Я так, просто посмотреть зашел",
+    "Ассортимент",
     placeholder="Выберите действие",
-    sizes=(2, 1, 1),
+    sizes=(2,),
 )
 
 
@@ -31,19 +29,18 @@ async def add_product(message: types.Message):
     await message.answer("Что хотите сделать?", reply_markup=ADMIN_KB)
 
 
-@admin_router.message(F.text == "Я так, просто посмотреть зашел")
-async def starring_at_product(message: types.Message):
+@admin_router.message(F.text == "Ассортимент")
+async def starring_at_product(message: types.Message, session: AsyncSession):
+    for product in await orm_get_all_products(session):
+        text = f"ID: <strong>{product.id}\
+            </strong>\nНазвание: <strong>{product.name}\
+                </strong>\nОписание: <strong>{product.description}\
+                    </strong>\nЦена: <strong>{product.price:.2f}</strong> руб."
+        await message.answer_photo(photo=product.image, caption=text)
     await message.answer("ОК, вот список товаров")
 
 
-@admin_router.message(F.text == "Изменить товар")
-async def change_product(message: types.Message):
-    await message.answer("ОК, вот список товаров")
 
-
-@admin_router.message(F.text == "Удалить товар")
-async def delete_product(message: types.Message, counter):
-    await message.answer("Выберите товар(ы) для удаления")
 
 
 #Код ниже для машины состояний (FSM)
