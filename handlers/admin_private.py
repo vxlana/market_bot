@@ -3,10 +3,11 @@ from aiogram.filters import Command, StateFilter
 
 from aiogram.fsm.context import FSMContext
 
-from database.orm_query import add_orm_product, orm_get_all_products
+from database.orm_query import add_orm_product, orm_delete_product, orm_get_all_products
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from aiogram.fsm.state import StatesGroup, State
 
+from kbds.inline import get_callback_btns
 from kbds.reply import get_keyboard
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,13 +37,25 @@ async def starring_at_product(message: types.Message, session: AsyncSession):
             </strong>\nНазвание: <strong>{product.name}\
                 </strong>\nОписание: <strong>{product.description}\
                     </strong>\nЦена: <strong>{product.price:.2f}</strong> руб."
-        await message.answer_photo(photo=product.image, caption=text)
+        await message.answer_photo(photo=product.image, caption=text, reply_markup=get_callback_btns(btns={
+            "Удалить товар": f"delete_{product.id}",
+            "Изменить товар": f"update_{product.id}"
+            }, sizes=(2,)))
     await message.answer("ОК, вот список товаров")
 
 
+@admin_router.callback_query(F.data.startswith("delete_"))
+async def delete_product(callback: types.CallbackQuery, session: AsyncSession):
+    product_id = int(callback.data.split("_")[1])
+    try:
+        await orm_delete_product(session, product_id)
+        await callback.message.edit_reply_markup()
+        await callback.message.answer("Товар удален", reply_markup=ADMIN_KB)
+    except Exception as e:
+        await callback.message.answer(f"Ошибка при удалении товара: {e}", reply_markup=ADMIN_KB)
 
 
-
+        
 #Код ниже для машины состояний (FSM)
 
 class AddProduct(StatesGroup):
