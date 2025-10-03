@@ -6,13 +6,12 @@ from aiogram.utils.formatting import (
     as_marked_section,
     Bold,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
+from database.orm_query import orm_get_products  # Italic, as_numbered_list и тд
 
-
-from database.orm_query import orm_get_all_products
 from filters.chat_types import ChatTypeFilter
 
 from kbds.reply import get_keyboard
-from sqlalchemy.ext.asyncio import AsyncSession
 
 user_private_router = Router()
 user_private_router.message.filter(ChatTypeFilter(["private"]))
@@ -36,11 +35,12 @@ async def start_cmd(message: types.Message):
 # @user_private_router.message(F.text.lower() == "меню")
 @user_private_router.message(or_f(Command("menu"), (F.text.lower() == "меню")))
 async def menu_cmd(message: types.Message, session: AsyncSession):
-    for product in await orm_get_all_products(session):
-        text = f"Название: <strong>{product.name}\
-                </strong>\nОписание: <strong>{product.description}\
-                </strong>\nЦена: <strong>{product.price:.2f}</strong> руб."
-        await message.answer_photo(photo=product.image, caption=text)
+    for product in await orm_get_products(session):
+        await message.answer_photo(
+            product.image,
+            caption=f"<strong>{product.name}\
+                    </strong>\n{product.description}\nСтоимость: {round(product.price, 2)}",
+        )
     await message.answer("Вот меню:")
 
 
@@ -66,14 +66,23 @@ async def payment_cmd(message: types.Message):
 @user_private_router.message(
     (F.text.lower().contains("доставк")) | (F.text.lower() == "варианты доставки"))
 @user_private_router.message(Command("shipping"))
-async def menu_cmd(message: types.Message):
-    text = as_marked_section(
+async def shipping_cmd(message: types.Message):
+    text = as_list(
+        as_marked_section(
             Bold("Варианты доставки/заказа:"),
             "Курьер",
             "Самовынос (сейчас прибегу заберу)",
             "Покушаю у Вас (сейчас прибегу)",
             marker="✅ ",
         ),
+        as_marked_section(
+            Bold("Нельзя:"),
+            "Почта",
+            "Голуби",
+            marker="❌ "
+        ),
+        sep="\n----------------------\n",
+    )
     await message.answer(text.as_html())
 
 
@@ -87,4 +96,3 @@ async def menu_cmd(message: types.Message):
 # async def get_location(message: types.Message):
 #     await message.answer(f"локация получена")
 #     await message.answer(str(message.location))
-

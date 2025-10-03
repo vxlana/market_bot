@@ -4,9 +4,9 @@ import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
-from aiogram.fsm.strategy import FSMStrategy
 
 from dotenv import find_dotenv, load_dotenv
+
 load_dotenv(find_dotenv())
 
 from middlewares.db import DataBaseSession
@@ -19,13 +19,13 @@ from handlers.admin_private import admin_router
 
 from common.bot_commands_list import private
 
-ALLOWED_UPDATES = ['message, edited_message', 'callback_query']
 
-bot = Bot(token=os.getenv('TOKEN'), default=DefaultBotProperties(parse_mode=ParseMode.HTML) )
+# ALLOWED_UPDATES = ['message', 'edited_message', 'callback_query']
+
+bot = Bot(token=os.getenv('TOKEN'), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 bot.my_admins_list = []
 
 dp = Dispatcher()
-
 
 dp.include_router(user_private_router)
 dp.include_router(user_group_router)
