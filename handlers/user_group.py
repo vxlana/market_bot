@@ -43,4 +43,3 @@ async def cleaner(message: types.Message):
         )
         await message.delete()
         # await message.chat.ban(message.from_user.id)
-
